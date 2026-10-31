@@ -14,7 +14,9 @@ A public, responsive personal expense tracker. Each signed-in user has private f
 - Generate actual calendar paydays, including five-payday months and three-payday biweekly months. A reference payday preserves the 14-day cycle across months.
 - Record each actual payment with its own date and amount. Expected pay never increases the actual balance.
 - Add repeated expenses independently, duplicate an entry, or save and add another.
-- Edit and soft-delete entries with an immediate undo action.
+- Edit saved income directly from each payday card or the Income received list; multiple payments remain individually editable. Expense edits also recalculate balances.
+- Save reusable custom income and expense categories (for example, College fees), private to your account and available across months and devices.
+- Soft-delete entries with an immediate undo action.
 - Carry forward balances automatically and recalculate subsequent months when earlier entries change.
 - Filter transactions, download CSV, and view category totals and six-month comparisons.
 - Responsive sidebar on desktop, bottom navigation on mobile, accessible dialogs, safe-area spacing, and home-screen installation metadata.
@@ -66,3 +68,5 @@ This release tracks simple income and expenses in USD. Credit-card purchases sho
 Vercel uses `npm run build` and publishes `dist`. `vercel.json` includes SPA routing and security headers. Source is public, while authenticated data is protected in Supabase. Supabase's dashboard itself is a project administration surface, not a public user interface.
 
 Tests cover exact cents, invalid dates, calendar paydays, 14-day continuity, leap years, monthly boundaries, carry-forward corrections, repeated purchases, deleted entries, category aggregation, and CSV formula injection.
+
+For existing databases created before custom categories were added, apply `database/custom-categories.sql` once. Production has already been updated.

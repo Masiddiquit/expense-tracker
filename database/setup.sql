@@ -7,6 +7,8 @@ create table if not exists public.expense_profiles (
   currency text not null default 'USD' check (currency = 'USD'),
   opening_balance_cents bigint not null default 0 check (abs(opening_balance_cents) <= 99999999999),
   opening_date date not null default current_date,
+  expense_categories text[] not null default '{}'::text[] check (cardinality(expense_categories) <= 200),
+  income_categories text[] not null default '{}'::text[] check (cardinality(income_categories) <= 200),
   created_at timestamptz not null default now()
 );
 
