@@ -18,6 +18,7 @@ A public, responsive personal expense tracker. Each signed-in user has private f
 - Save reusable custom income and expense categories (for example, College fees), private to your account and available across months and devices.
 - Soft-delete entries with an immediate undo action.
 - Delete a selected month’s transactions and pay schedule after reviewing its totals. Restore deleted month data later from Settings; balances and reports recalculate automatically.
+- Update the screen immediately after server-confirmed deletion/restoration, without a full account reload. Account reads run in parallel. A 15-second deadline bounds network and session waits; uncertain operations offer a saved-data check before retrying.
 - Carry forward balances automatically and recalculate subsequent months when earlier entries change.
 - Filter transactions, download CSV, and view category totals and six-month comparisons.
 - Responsive sidebar on desktop, bottom navigation on mobile, accessible dialogs, safe-area spacing, and home-screen installation metadata.
