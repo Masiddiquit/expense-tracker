@@ -1,0 +1,43 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {deleteMonthData,restoreMonthData,monthDataInfo} from '../src/month-data.mjs';
+import {summarize,summarizeYear} from '../src/finance.mjs';
+import {buildReport} from '../src/reports.mjs';
+
+const fixture=()=>({profile:{opening_date:'2026-01-01',opening_balance_cents:10000,expense_categories:['College fees']},configs:[{month:'2026-01-01',frequency:'weekly'},{month:'2026-02-01',frequency:'monthly'}],transactions:[{id:'prior',date:'2025-12-31',type:'income',amount_cents:4000},{id:'income',date:'2026-01-01',type:'income',amount_cents:90000},{id:'expense',date:'2026-01-31',type:'expense',category:'College fees',amount_cents:15000},{id:'old-deleted',date:'2026-01-02',type:'expense',amount_cents:1000,deleted_at:'earlier'},{id:'next',date:'2026-02-01',type:'income',amount_cents:30000}]});
+test('month deletion removes only active data dated in that month and recalculates later totals and reports',()=>{
+ const original=fixture(),before=structuredClone(original);
+ const {data,batch}=deleteMonthData(original,'2026-01',{id:'batch-one',timestamp:'2026-10-31T20:00:00Z'});
+ assert.deepEqual(original,before);
+ assert.equal(batch.transaction_count,2);assert.equal(batch.had_schedule,true);
+ assert.equal(monthDataInfo(data,'2026-01').rows.length,0);assert.equal(monthDataInfo(data,'2026-01').config,undefined);
+ assert.equal(data.transactions.find(t=>t.id==='old-deleted').deleted_at,'earlier');
+ assert.equal(monthDataInfo(data,'2026-02').rows.length,1);assert.ok(monthDataInfo(data,'2026-02').config);
+ assert.equal(summarize(data.transactions,'2026-02',data.profile).opening,10000);
+ assert.equal(summarizeYear(data.transactions,2026,data.profile).income,30000);
+ assert.equal(buildReport({transactions:data.transactions,profile:data.profile,scope:'monthly',month:'2026-01'}).transactions.length,0);
+ assert.deepEqual(data.profile,original.profile);
+ assert.throws(()=>deleteMonthData(data,'2026-01'));
+});
+test('restoration survives serialization and does not resurrect independently deleted entries or duplicate new entries',()=>{
+ const {data}=deleteMonthData(fixture(),'2026-01',{id:'batch-one'});
+ const reloaded=JSON.parse(JSON.stringify(data));
+ reloaded.transactions.push({id:'new',date:'2026-01-15',type:'expense',amount_cents:5000});
+ reloaded.configs=reloaded.configs.filter(c=>c.month!=='2026-01-01').concat({month:'2026-01-01',frequency:'biweekly',deleted_at:null,month_deletion_id:null});
+ const restored=restoreMonthData(reloaded,'batch-one');
+ assert.equal(monthDataInfo(restored,'2026-01').rows.length,3);
+ assert.equal(monthDataInfo(restored,'2026-01').config.frequency,'biweekly');
+ assert.equal(restored.transactions.find(t=>t.id==='old-deleted').deleted_at,'earlier');
+ assert.equal(summarize(restored.transactions,'2026-02',restored.profile).opening,80000);
+ assert.ok(restored.deletedMonths[0].restored_at);
+ assert.throws(()=>restoreMonthData(restored,'batch-one'));
+});
+test('schedule-only deletion is recoverable, and restoring cannot silently hide data before a new opening date',()=>{
+ const original={profile:{opening_date:'2026-01-01'},configs:[{month:'2026-05-01',frequency:'monthly'}],transactions:[]};
+ const {data}=deleteMonthData(original,'2026-05',{id:'schedule'});
+ assert.equal(monthDataInfo(restoreMonthData(data,'schedule'),'2026-05').config.frequency,'monthly');
+ const deleted=deleteMonthData(fixture(),'2026-01',{id:'opening-check'}).data;
+ deleted.profile={...deleted.profile,opening_date:'2026-02-01'};
+ assert.throws(()=>restoreMonthData(deleted,'opening-check'),/starting balance date/);
+ assert.throws(()=>deleteMonthData(original,'2026-13'));
+});

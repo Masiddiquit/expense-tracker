@@ -17,6 +17,7 @@ A public, responsive personal expense tracker. Each signed-in user has private f
 - Edit saved income directly from each payday card or the Income received list; multiple payments remain individually editable. Expense edits also recalculate balances.
 - Save reusable custom income and expense categories (for example, College fees), private to your account and available across months and devices.
 - Soft-delete entries with an immediate undo action.
+- Delete a selected month’s transactions and pay schedule after reviewing its totals. Restore deleted month data later from Settings; balances and reports recalculate automatically.
 - Carry forward balances automatically and recalculate subsequent months when earlier entries change.
 - Filter transactions, download CSV, and view category totals and six-month comparisons.
 - Responsive sidebar on desktop, bottom navigation on mobile, accessible dialogs, safe-area spacing, and home-screen installation metadata.
@@ -42,7 +43,7 @@ npm run build
 ## Connect a dedicated Supabase project
 
 1. Create a dedicated Supabase project; this app already has one configured in production.
-2. Run `database/setup.sql` once in the new project's SQL editor. It creates three tables, indexes, explicit grants, and owner-scoped row-level policies. The SQL is for initial setup; policies intentionally do not use `IF NOT EXISTS`.
+2. Run `database/setup.sql`, then `database/month-data.sql`, once in the new project's SQL editor. They create the core tables, recovery history, atomic month delete/restore functions, indexes, explicit grants, and owner-scoped row-level policies. These scripts are for initial setup; policies intentionally do not use `IF NOT EXISTS`.
 3. Enable email/password signup in Authentication. Configure the Site URL to the production Vercel URL and add the same origin to allowed redirect URLs. Retain email confirmation for real users. Configure a production email provider for unrestricted public signup and password recovery; the default mail service may restrict recipients and rate limits.
 4. Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` on Vercel, then redeploy. Use only the publishable key in the browser. Never publish a secret/service-role key.
 5. Verify signup, confirmation, login, recovery, persistence after reload, and access isolation with two separate test accounts. Run Supabase security advisors before enabling real users.
@@ -70,3 +71,5 @@ Vercel uses `npm run build` and publishes `dist`. `vercel.json` includes SPA rou
 Tests cover exact cents, invalid dates, calendar paydays, 14-day continuity, leap years, monthly boundaries, carry-forward corrections, repeated purchases, deleted entries, category aggregation, and CSV formula injection.
 
 For existing databases created before custom categories were added, apply `database/custom-categories.sql` once. Production has already been updated.
+
+Month deletion and restoration require `database/month-data.sql` after the base schema. Production has already been updated. Operations are atomic, account-scoped, and recoverable.
