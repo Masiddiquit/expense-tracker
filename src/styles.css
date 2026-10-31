@@ -42,3 +42,6 @@
 .month-label{isolation:isolate;overflow:hidden;min-width:0;min-height:44px}
 .month-label input{min-width:0;max-width:100%;border:0;border-radius:0;margin:0}
 .month-label input::-webkit-calendar-picker-indicator{margin:0;max-width:100%;max-height:100%}
+.deleted-month-row>.deleted-month-buttons{display:flex;flex-direction:column;gap:8px;flex-shrink:0}.deleted-month-buttons .button{width:100%;justify-content:center}.deleted-months-card>.card-heading{flex-wrap:wrap}.deleted-months-card>.card-heading>.button{min-height:44px}.deleted-months-card .deleted-month-row{flex-wrap:wrap}.deleted-months-card .deleted-month-row>div:first-child{flex:1;min-width:130px}
+@media(max-width:600px){.deleted-month-row>.deleted-month-buttons{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:8px}.deleted-month-buttons .button{padding:9px 6px;font-size:10px;white-space:normal;line-height:1.5}.deleted-months-card>.card-heading>.button{width:100%;font-size:12px;justify-content:center}}
+@media(max-width:350px){.deleted-month-row>.deleted-month-buttons{grid-template-columns:1fr}}

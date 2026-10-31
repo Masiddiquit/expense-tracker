@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {deleteMonthData,restoreMonthData,monthDataInfo} from '../src/month-data.mjs';
+import {deleteMonthData,restoreMonthData,monthDataInfo,purgeMonthData} from '../src/month-data.mjs';
 import {summarize,summarizeYear} from '../src/finance.mjs';
 import {buildReport} from '../src/reports.mjs';
 
@@ -40,4 +40,23 @@ test('schedule-only deletion is recoverable, and restoring cannot silently hide 
  deleted.profile={...deleted.profile,opening_date:'2026-02-01'};
  assert.throws(()=>restoreMonthData(deleted,'opening-check'),/starting balance date/);
  assert.throws(()=>deleteMonthData(original,'2026-13'));
+});
+test('permanently deleting one batch preserves other trash, active entries, newer schedules, and individual deletions',()=>{
+ let data=deleteMonthData(fixture(),'2026-01',{id:'january'}).data;
+ data=deleteMonthData(data,'2026-02',{id:'february'}).data;
+ data.transactions.push({id:'new-entry',date:'2026-01-15',type:'income',amount_cents:5000,deleted_at:null});
+ data.configs=data.configs.filter(c=>c.month!=='2026-01-01').concat({month:'2026-01-01',frequency:'biweekly',deleted_at:null,month_deletion_id:null});
+ const purged=purgeMonthData(data,['january']);
+ assert.ok(!purged.transactions.some(t=>['income','expense'].includes(t.id)));
+ assert.ok(purged.transactions.some(t=>t.id==='old-deleted'));
+ assert.ok(purged.transactions.some(t=>t.id==='new-entry'));
+ assert.equal(purged.configs.find(c=>c.month==='2026-01-01').frequency,'biweekly');
+ assert.deepEqual(purged.deletedMonths.map(b=>b.id),['february']);
+ assert.ok(restoreMonthData(purged,'february').transactions.some(t=>t.id==='next'&&!t.deleted_at));
+ assert.throws(()=>restoreMonthData(purged,'january'));
+ const emptied=purgeMonthData(data,['january','february']);
+ assert.equal(emptied.deletedMonths.length,0);
+ assert.ok(!emptied.transactions.some(t=>t.month_deletion_id));
+ assert.throws(()=>purgeMonthData(data,[]));
+ assert.throws(()=>purgeMonthData(restoreMonthData(data,'january'),['january']));
 });

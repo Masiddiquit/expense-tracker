@@ -22,6 +22,16 @@ test('confirmed month deletion updates immediately without fetching the entire a
  const restored=await changeAccountMonth(result.data,'restore','server-deletion',rpcClient({data:null,error:null}));
  assert.equal(restored.data.transactions[0].deleted_at,null);
 });
+test('purge targets explicit batch IDs and updates only after server confirmation',async()=>{
+ const deleted=await changeAccountMonth(fixture(),'delete','2026-10',rpcClient({data:'batch',error:null}));
+ const client=rpcClient({data:['batch'],error:null});
+ const result=await changeAccountMonth(deleted.data,'purge',['batch'],client);
+ assert.equal(client.calls[0].name,'purge_deleted_expense_months');
+ assert.deepEqual(client.calls[0].args,{deletion_ids:['batch']});
+ assert.equal(result.data.deletedMonths.length,0);
+ assert.equal(result.data.transactions.length,0);
+ assert.equal(result.data.configs.length,0);
+});
 test('stalled RPC expires, aborts, preserves local data, and does not automatically retry',async()=>{
  let finish;
  const client=rpcClient(()=>new Promise(resolve=>{finish=resolve;}));

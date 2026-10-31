@@ -20,3 +20,10 @@ export function restoreMonthData(data,id,{timestamp=new Date().toISOString()}={}
  const restore=row=>row.month_deletion_id===id&&row.deleted_at?{...row,deleted_at:null,month_deletion_id:null}:row;
  return {...data,transactions:data.transactions.map(restore),configs:data.configs.map(restore),deletedMonths:data.deletedMonths.map(b=>b.id===id?{...b,restored_at:timestamp}:b)};
 }
+export function purgeMonthData(data,ids){
+ const selected=new Set(ids);
+ if(!selected.size)throw new Error('Choose deleted month data to remove.');
+ if([...selected].some(id=>!(data.deletedMonths||[]).some(b=>b.id===id&&!b.restored_at)))throw new Error('Some selected data is already removed or restored. Check saved data before trying again.');
+ const keep=row=>!(row.deleted_at&&selected.has(row.month_deletion_id));
+ return {...data,transactions:data.transactions.filter(keep),configs:data.configs.filter(keep),deletedMonths:data.deletedMonths.filter(b=>!selected.has(b.id))};
+}

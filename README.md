@@ -44,7 +44,7 @@ npm run build
 ## Connect a dedicated Supabase project
 
 1. Create a dedicated Supabase project; this app already has one configured in production.
-2. Run `database/setup.sql`, then `database/month-data.sql`, once in the new project's SQL editor. They create the core tables, recovery history, atomic month delete/restore functions, indexes, explicit grants, and owner-scoped row-level policies. These scripts are for initial setup; policies intentionally do not use `IF NOT EXISTS`.
+2. Run `database/setup.sql`, `database/month-data.sql`, then `database/purge-deleted-months.sql`, once in the new project's SQL editor. They create the core tables, recovery history, atomic month delete/restore functions, indexes, explicit grants, and owner-scoped row-level policies. These scripts are for initial setup; policies intentionally do not use `IF NOT EXISTS`.
 3. Enable email/password signup in Authentication. Configure the Site URL to the production Vercel URL and add the same origin to allowed redirect URLs. Retain email confirmation for real users. Configure a production email provider for unrestricted public signup and password recovery; the default mail service may restrict recipients and rate limits.
 4. Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` on Vercel, then redeploy. Use only the publishable key in the browser. Never publish a secret/service-role key.
 5. Verify signup, confirmation, login, recovery, persistence after reload, and access isolation with two separate test accounts. Run Supabase security advisors before enabling real users.
@@ -74,3 +74,5 @@ Tests cover exact cents, invalid dates, calendar paydays, 14-day continuity, lea
 For existing databases created before custom categories were added, apply `database/custom-categories.sql` once. Production has already been updated.
 
 Month deletion and restoration require `database/month-data.sql` after the base schema. Production has already been updated. Operations are atomic, account-scoped, and recoverable.
+
+Apply `database/purge-deleted-months.sql` after the month-data schema to enable confirmed permanent deletion of individual deleted month entries or the selected trash list. Active data is excluded. Production has been updated.
