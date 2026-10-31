@@ -1,11 +1,13 @@
 # Expense Tracker
 
+Live app: https://pay-and-expenses.vercel.app/
+
 A public, responsive personal expense tracker. Each signed-in user has private financial records. Built with React, Vite, and Supabase, and deployed on Vercel.
 
 ## Features
 
 - Select weekly, every two weeks, twice monthly, monthly, or irregular pay **for each month**.
-- Generate actual calendar paydays, including five-payday weeks and three-payday biweekly months. A reference payday preserves the 14-day cycle across months.
+- Generate actual calendar paydays, including five-payday months and three-payday biweekly months. A reference payday preserves the 14-day cycle across months.
 - Record each actual payment with its own date and amount. Expected pay never increases the actual balance.
 - Add repeated expenses independently, duplicate an entry, or save and add another.
 - Edit and soft-delete entries with an immediate undo action.
@@ -16,7 +18,9 @@ A public, responsive personal expense tracker. Each signed-in user has private f
 
 ## Project status
 
-The interface, demo, finance calculations, Supabase client integration, and database setup script are implemented. Creating the dedicated Supabase project was blocked by the account's two-active-free-project limit. Until a project is connected, the public app clearly labels sample data and disables account submission. No real signup, database persistence, password recovery, or user-isolation checks have been verified against a live project yet.
+The dedicated Supabase project is connected to the production Vercel deployment. Tables, owner-scoped policies, email/password authentication, the production Site URL, and authentication redirects are configured. API integration tests passed for password login, profile/schedule/expense storage, reload, edit, soft deletion, sign-out, and isolation between two test accounts. Temporary test accounts and records were removed. New accounts persist their starting-balance date on first load so later months retain carry-forward history.
+
+Email confirmation remains enabled. Public signup and password-reset email delivery require a custom SMTP provider: Supabase's default email service only delivers to project-team addresses. No custom SMTP credentials have been provided, so unrestricted public signup is not yet ready. Confirmation has not been disabled.
 
 ## Local development
 
@@ -31,7 +35,7 @@ npm run build
 
 ## Connect a dedicated Supabase project
 
-1. Create a dedicated project after resolving the active-project limit. Do not change existing Payroll or warehouse projects.
+1. Create a dedicated Supabase project; this app already has one configured in production.
 2. Run `database/setup.sql` once in the new project's SQL editor. It creates three tables, indexes, explicit grants, and owner-scoped row-level policies. The SQL is for initial setup; policies intentionally do not use `IF NOT EXISTS`.
 3. Enable email/password signup in Authentication. Configure the Site URL to the production Vercel URL and add the same origin to allowed redirect URLs. Retain email confirmation for real users. Configure a production email provider for unrestricted public signup and password recovery; the default mail service may restrict recipients and rate limits.
 4. Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` on Vercel, then redeploy. Use only the publishable key in the browser. Never publish a secret/service-role key.

@@ -1,7 +1,7 @@
 import {createClient} from '@supabase/supabase-js';
 import {newId,today,monthOf,shiftMonth} from './finance.mjs';
-const url=import.meta.env.VITE_SUPABASE_URL;
-const key=import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+const url=import.meta.env?.VITE_SUPABASE_URL;
+const key=import.meta.env?.VITE_SUPABASE_PUBLISHABLE_KEY;
 export const supabase=url&&key?createClient(url,key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}):null;
 const DEMO_KEY='expense-tracker-demo-v1';
 export const emptyProfile={display_name:'',currency:'USD',opening_balance_cents:0,opening_date:'2026-01-01'};
@@ -9,4 +9,4 @@ export function demoData(){const month=monthOf(today()),previous=shiftMonth(mont
 export function readDemo(){try{const value=JSON.parse(localStorage.getItem(DEMO_KEY));if(value&&Array.isArray(value.transactions)&&Array.isArray(value.configs)&&value.profile)return value;}catch{}return demoData();}
 export function saveDemo(value){localStorage.setItem(DEMO_KEY,JSON.stringify(value));}
 export function clearDemo(){localStorage.removeItem(DEMO_KEY);}
-export async function loadAccount(userId){const [p,c]=await Promise.all([supabase.from('expense_profiles').select('*').eq('user_id',userId).maybeSingle(),supabase.from('expense_months').select('*').eq('user_id',userId)]);if(p.error)throw p.error;if(c.error)throw c.error;let transactions=[];for(let offset=0;;offset+=1000){const r=await supabase.from('expense_transactions').select('*').eq('user_id',userId).order('date',{ascending:false}).order('id').range(offset,offset+999);if(r.error)throw r.error;transactions.push(...r.data);if(r.data.length<1000)break;}return {profile:p.data||{...emptyProfile,opening_date:`${monthOf(today())}-01`},configs:c.data,transactions};}
+export async function loadAccount(userId,client=supabase){const [p,c]=await Promise.all([client.from('expense_profiles').select('*').eq('user_id',userId).maybeSingle(),client.from('expense_months').select('*').eq('user_id',userId)]);if(p.error)throw p.error;if(c.error)throw c.error;let profile=p.data;if(!profile){const initial={...emptyProfile,user_id:userId,opening_date:`${monthOf(today())}-01`};const created=await client.from('expense_profiles').upsert(initial,{onConflict:'user_id',ignoreDuplicates:true});if(created.error)throw created.error;const stored=await client.from('expense_profiles').select('*').eq('user_id',userId).single();if(stored.error)throw stored.error;profile=stored.data;}let transactions=[];for(let offset=0;;offset+=1000){const r=await client.from('expense_transactions').select('*').eq('user_id',userId).order('date',{ascending:false}).order('id').range(offset,offset+999);if(r.error)throw r.error;transactions.push(...r.data);if(r.data.length<1000)break;}return {profile,configs:c.data,transactions};}
