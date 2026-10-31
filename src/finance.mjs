@@ -1,6 +1,7 @@
 export const CATEGORIES = ['Food & dining','Groceries','Rent','Utilities','Fuel','Transportation','Shopping','Subscriptions','Phone & internet','Family support','Charity','Health','Education','Entertainment','Other'];
 export const METHODS = ['Debit card','Cash','Credit card','Bank transfer','Other'];
 export const FREQUENCIES = {weekly:'Every week',biweekly:'Every 2 weeks',semimonthly:'Twice a month',monthly:'Once a month',irregular:'As received'};
+export const WEEKDAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 export const COLORS = ['#16735c','#78b69b','#d6ad63','#8799bb','#bc8c9d','#a5b9a2','#8fbac7','#b3a3c3'];
 export function newId(){if(typeof crypto.randomUUID==='function')return crypto.randomUUID();const bytes=crypto.getRandomValues(new Uint8Array(16));bytes[6]=(bytes[6]&15)|64;bytes[8]=(bytes[8]&63)|128;const h=[...bytes].map(b=>b.toString(16).padStart(2,'0')).join('');return `${h.slice(0,8)}-${h.slice(8,12)}-${h.slice(12,16)}-${h.slice(16,20)}-${h.slice(20)}`;}
 export const today = () => {const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
@@ -14,6 +15,13 @@ export function money(cents,currency='USD',digits=2){return new Intl.NumberForma
 export function parseMoney(value,{allowNegative=false}={}){const s=String(value).trim();if(!new RegExp(`^${allowNegative?'-?':''}\\d{1,9}(?:\\.\\d{1,2})?$`).test(s))throw new Error('Enter a valid amount with no more than two decimal places.');const neg=s.startsWith('-');const [whole,part='']=s.replace('-','').split('.');const cents=Number(whole)*100+Number(part.padEnd(2,'0'));return neg?-cents:cents;}
 export function validDate(value){if(!/^\d{4}-\d{2}-\d{2}$/.test(value))return false;const d=dateObj(value);return !Number.isNaN(+d)&&iso(d)===value;}
 export function defaultConfig(month){return {month:`${month}-01`,frequency:'monthly',anchor_date:`${month}-01`,monthly_day:1,second_day:15,expected_amount_cents:0,budget_cents:0};}
+export function payWeekday(config){return validDate(config?.anchor_date||'')?dateObj(config.anchor_date).getUTCDay():0;}
+export function withPayWeekday(month,config,weekday){
+ const day=Number(weekday);if(!Number.isInteger(day)||day<0||day>6)throw new Error('Choose a valid weekday.');
+ const anchor=dateObj(config.frequency==='weekly'?`${month}-01`:validDate(config.anchor_date||'')?config.anchor_date:`${month}-01`);
+ anchor.setUTCDate(anchor.getUTCDate()+(day-anchor.getUTCDay()+7)%7);
+ return {...config,anchor_date:iso(anchor)};
+}
 export function payDates(month,config){if(!config||config.frequency==='irregular')return [];const [y,m]=month.split('-').map(Number);const first=new Date(Date.UTC(y,m-1,1,12));const last=new Date(Date.UTC(y,m,0,12));const clamped=day=>`${month}-${String(Math.min(Math.max(Number(day)||1,1),last.getUTCDate())).padStart(2,'0')}`;
  if(config.frequency==='monthly')return [clamped(config.monthly_day)];
  if(config.frequency==='semimonthly')return [...new Set([clamped(config.monthly_day),clamped(config.second_day)])].sort();

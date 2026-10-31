@@ -11,7 +11,7 @@ A public, responsive personal expense tracker. Each signed-in user has private f
 - Download annual or monthly PDF and CSV reports for the selected period, optionally including every transaction. Demo reports are labeled as sample data.
 
 - Select weekly, every two weeks, twice monthly, monthly, or irregular pay **for each month**.
-- Generate actual calendar paydays, including five-payday months and three-payday biweekly months. A reference payday preserves the 14-day cycle across months.
+- Generate actual calendar paydays, including five-payday months and three-payday biweekly months. Choose the weekday for weekly or every-two-weeks pay. For every two weeks, select the first payday in the month to preserve the alternating cycle across months.
 - Record each actual payment with its own date and amount. Expected pay never increases the actual balance.
 - Add repeated expenses independently, duplicate an entry, or save and add another.
 - Edit saved income directly from each payday card or the Income received list; multiple payments remain individually editable. Expense edits also recalculate balances.
