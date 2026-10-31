@@ -6,6 +6,10 @@ A public, responsive personal expense tracker. Each signed-in user has private f
 
 ## Features
 
+- Annual Dashboard with a year selector, monthly comparisons, and links to all 12 months.
+- Monthly Insights with a month selector and January–December shortcuts, pay schedule, charts, and transaction details.
+- Download annual or monthly PDF and CSV reports for the selected period, optionally including every transaction. Demo reports are labeled as sample data.
+
 - Select weekly, every two weeks, twice monthly, monthly, or irregular pay **for each month**.
 - Generate actual calendar paydays, including five-payday months and three-payday biweekly months. A reference payday preserves the 14-day cycle across months.
 - Record each actual payment with its own date and amount. Expected pay never increases the actual balance.
